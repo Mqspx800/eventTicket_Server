@@ -8,7 +8,7 @@ router.post('/ticket', async (req, res) => {
     const event = await Event.findByPk(eventId)
     if (!event) res.status(422).send('Event not found!')
     else if (price && description) {
-      const ticket = await Ticket.create({ price, description, picture, userId, eventId })
+      const ticket = await Ticket.create({ price:parseInt(price), description, picture, userId, eventId })
       res.status(200).json({ ticket })
     }
   } catch (err) {
@@ -20,7 +20,7 @@ router.post('/ticket', async (req, res) => {
 router.put('/ticket/:id', async (req, res) => {
   try {
     const { price, description, eventId, picture } = req.body
-    const ticket = await ticket.findOne({ where: { id: req.params.id, eventId } })
+    const ticket = await Ticket.findOne({ where: { id: req.params.id, eventId } })
     if (ticket) {
       await ticket.update({ price: parseInt(price), description, picture, eventId })
       res.json({ ticket })
@@ -54,9 +54,11 @@ router.get('/tickets', async (req, res) => {
 router.get('/ticket/:id', async (req, res) => {
   try {
     const ticket = await Ticket.findByPk(req.params.id,
-      { include: [{ model: User }, [{ model: Comment }]] })
+      { include: [{ model: Comment, required: false }] })
     if (ticket) {
       res.json({ ticket })
+    } else {
+      res.status(404).send('ticket not found')
     }
   } catch (err) {
     console.error(err)
