@@ -1,6 +1,7 @@
 const Sequelize = require('sequelize')
 const db = require('../db')
 
+
 const Event = db.define('event',{
   name:{type:Sequelize.STRING, unique:true},
   description:Sequelize.STRING,
@@ -10,7 +11,7 @@ const Event = db.define('event',{
 })
 
 const Ticket = db.define('ticket',{
-  price:Sequelize.NUMBER,
+  price:Sequelize.INTEGER,
   description:Sequelize.STRING,
   picture:Sequelize.STRING
 })
@@ -31,5 +32,7 @@ Ticket.belongsTo(User)
 User.hasMany(Ticket)
 User.hasMany(Comment)
 Comment.belongsTo(User)
+Comment.belongsTo(Ticket)
+Ticket.hasMany(Comment)
 
 module.exports = {Event,Ticket,User,Comment}

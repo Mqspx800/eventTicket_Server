@@ -6,4 +6,4 @@ const db = new Sequelize(baseURL)
 db.sync({force:false})
 .then(_=>console.log('Database is up and running'))
 
-module.export = db
+module.exports = db
