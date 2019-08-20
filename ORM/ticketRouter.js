@@ -7,11 +7,11 @@ const auth = require('./auth/middleware')
 function ticketRouterFac(updateStream) {
   router.post('/ticket', auth, async (req, res) => {
     try {
-      const { price, description, userId, eventId, picture } = req.body
+      const { price, description, userId, eventId, picture, stock } = req.body
       const event = await Event.findByPk(eventId)
       if (!event) res.status(422).send('Event not found!')
       else if (price && description) {
-        const ticket = await Ticket.create({ price: parseInt(price), description, picture, userId, eventId })
+        const ticket = await Ticket.create({ price: parseInt(price), description, picture, userId, eventId, stock })
         res.status(200).json({ ticket })
         updateStream()
       }
@@ -26,7 +26,7 @@ function ticketRouterFac(updateStream) {
       const { price, description, eventId, picture } = req.body
       const { user } = req
       const ticket = await Ticket.findOne({ where: { id: req.params.id, eventId } })
-      console.log('user.id',user.id,'userId',ticket.userId)
+      console.log('user.id', user.id, 'userId', ticket.userId)
       if (user.id != ticket.userId) {
         res.status(404).send({ message: 'you are not authrized to make changes on this ticket' }) // check owner
       } else {
@@ -41,6 +41,21 @@ function ticketRouterFac(updateStream) {
     } catch (err) {
       console.error(err)
       res.status(500).send
+    }
+  })
+
+  router.buy('/ticket/buy/:id', auth, async (req, res) => {
+    try {
+      const { userId, number } = req.body
+      const ticket = await Ticket.findByPk(req.params.id)
+      if (ticket.stock - parseInt(number) < 0) { res.json({ message: 'not enough stock' }) }
+      else if (ticket.stock - parseInt(number) === 0) { ticket.destroy({ where: { id: ticket.id } }) }
+      else {
+        ticket.update({ stock: stock -= parseInt(number) })
+      }
+    } catch (err) {
+      console.error(err)
+      res.status(500).send()
     }
   })
 

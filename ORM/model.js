@@ -13,7 +13,8 @@ const Event = db.define('event',{
 const Ticket = db.define('ticket',{
   price:Sequelize.INTEGER,
   description:Sequelize.STRING,
-  picture:Sequelize.STRING
+  picture:Sequelize.STRING,
+  stock:Sequelize.INTEGER
 })
 
 const User = db.define('user',{
