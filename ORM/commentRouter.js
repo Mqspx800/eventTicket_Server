@@ -13,6 +13,7 @@ function commentRouterFactory(updateStream) {
     if (userId) {
       const comment = await Comment.create({ text, userId, ticketId })
       res.json({ comment })
+      updateStream()
     } else {
       res.status(422).send('Please login before you try to comment')
     }
