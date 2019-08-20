@@ -2,13 +2,19 @@ const { User } = require('./model')
 const { Router } = require('express')
 const router = new Router()
 const bcrypt = require('bcrypt')
+const Sequelize = require('sequelize')
 
 router.post('/user', async (req, res) => {
   try {
     let = { name, email, password } = req.body
     password = bcrypt.hashSync(password, 10)
-    const users = await User.findAll({ attributes: [name, email] })
-    if (users.some(u => u.name === name) || users.some(u.email === email))
+    const userExist = await User.findOne({
+      where: Sequelize.or(
+        { name },
+        { email }
+      )
+    })
+    if (userExist)
       res.status(405).send('Either the name or email has been taken')
     else {
       const newUser = await User.create({ name, email, password })

@@ -1,12 +1,13 @@
 const { Comment } = require('./model')
 const { Router } = require('express')
 const router = new Router()
+const auth = require('./auth/middleware')
 
 
 
 function commentRouterFactory(updateStream) {
 
-  router.post('/comment', async (req, res) => {
+  router.post('/comment',auth, async (req, res) => {
     const { text, userId, ticketId } = req.body
     console.log(req.body)
     if (!text || text === '') res.status(422).send('not allow to post empty comment')
@@ -18,7 +19,6 @@ function commentRouterFactory(updateStream) {
       res.status(422).send('Please login before you try to comment')
     }
   })
-
   return router
 }
 

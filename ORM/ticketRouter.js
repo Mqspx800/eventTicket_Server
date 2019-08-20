@@ -2,11 +2,10 @@ const { Ticket, Event, Comment, User } = require('./model')
 const { Router } = require('express')
 const router = new Router()
 const moment = require('moment')
-
-
+const auth = require('./auth/middleware')
 
 function ticketRouterFac(updateStream) {
-  router.post('/ticket', async (req, res) => {
+  router.post('/ticket', auth, async (req, res) => {
     try {
       const { price, description, userId, eventId, picture } = req.body
       const event = await Event.findByPk(eventId)
@@ -22,16 +21,22 @@ function ticketRouterFac(updateStream) {
     }
   })
 
-  router.put('/ticket/:id', async (req, res) => {
+  router.put('/ticket/:id', auth, async (req, res) => {
     try {
       const { price, description, eventId, picture } = req.body
+      const { user } = req
       const ticket = await Ticket.findOne({ where: { id: req.params.id, eventId } })
-      if (ticket) {
-        await ticket.update({ price: parseInt(price), description, picture, eventId })
-        res.json({ ticket })
-        updateStream()
+      console.log('user.id',user.id,'userId',ticket.userId)
+      if (user.id != ticket.userId) {
+        res.status(404).send({ message: 'you are not authrized to make changes on this ticket' }) // check owner
       } else {
-        res.status(422).send('Event or ticket is not found')
+        if (ticket) {
+          await ticket.update({ price: parseInt(price), description, picture, eventId })
+          res.json({ ticket })
+          updateStream()
+        } else {
+          res.status(422).send('Event or ticket is not found')
+        }
       }
     } catch (err) {
       console.error(err)
@@ -56,7 +61,6 @@ function ticketRouterFac(updateStream) {
     }
   })
 
-  //
   router.get('/ticket/:id', async (req, res) => {
     try {
       const ticket = await Ticket.findByPk(req.params.id,

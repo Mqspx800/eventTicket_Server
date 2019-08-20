@@ -5,7 +5,8 @@ const userRouter = require('./ORM/userRouter')
 const eventRouter = require('./ORM/eventRouter')
 const { ticketRouterFac, calculateFlaudRisk } = require('./ORM/ticketRouter')
 const commentRouterFac = require('./ORM/commentRouter')
-const { Ticket, Comment } = require('./ORM/model')
+const { Ticket } = require('./ORM/model')
+const authRouter = require('./ORM/auth/router')
 
 const sse = require('json-sse')
 
@@ -43,10 +44,12 @@ const updateStream = async () => {
   stream.updateInit(data)
   stream.send(data)
 }
+
 const ticketRouter = ticketRouterFac(updateStream)
 const commentRouter = commentRouterFac(updateStream)
 
 app.use(userRouter)
+app.use(authRouter)
 app.use(eventRouter)
 app.use(ticketRouter)
 app.use(commentRouter)
