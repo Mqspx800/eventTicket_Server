@@ -9,7 +9,7 @@ function ticketRouterFac(updateStream) {
     try {
       const { price, description, userId, eventId, picture, stock } = req.body
       const event = await Event.findByPk(eventId)
-      if (!event) res.status(422).send('Event not found!')
+      if (!event) res.status(422).send({ message: 'Event not found!' })
       else if (price && description) {
         const ticket = await Ticket.create({ price: parseInt(price), description, picture, userId, eventId, stock })
         res.status(200).json({ ticket })
@@ -35,21 +35,21 @@ function ticketRouterFac(updateStream) {
           res.json({ ticket })
           updateStream()
         } else {
-          res.status(422).send('Event or ticket is not found')
+          res.status(422).send({ message: 'Event or ticket is not found' })
         }
       }
     } catch (err) {
       console.error(err)
-      res.status(500).send
+      res.status(500).send()
     }
   })
 
   router.buy('/ticket/buy/:id', auth, async (req, res) => {
     try {
-      const { userId, number } = req.body
+      const { number } = req.body
       const ticket = await Ticket.findByPk(req.params.id)
-      if (ticket.stock - parseInt(number) < 0) { res.json({ message: 'not enough stock' }) }
-      else if (ticket.stock - parseInt(number) === 0) { ticket.destroy({ where: { id: ticket.id } }) }
+      if (ticket.stock < parseInt(number)) { res.json({ message: 'not enough stock' }) }
+      else if (ticket.stock === parseInt(number)) { ticket.destroy({ where: { id: ticket.id } }) }
       else {
         ticket.update({ stock: stock -= parseInt(number) })
       }
@@ -68,7 +68,7 @@ function ticketRouterFac(updateStream) {
       if (tickets) {
         res.json({ tickets })
       } else {
-        res.send('no tickets for this event')
+        res.send({ message: 'no tickets for this event' })
       }
     } catch (err) {
       console.error(err)
@@ -83,7 +83,7 @@ function ticketRouterFac(updateStream) {
       if (ticket) {
         res.json({ ticket })
       } else {
-        res.status(404).send('ticket not found')
+        res.status(404).send({ message: 'ticket not found' })
       }
     } catch (err) {
       console.error(err)

@@ -28,7 +28,8 @@ app.get(
   '/stream/:id',
   async (request, response) => {
     streamId = request.params.id
-    const ticket = await Ticket.findByPk(request.params.id)
+    const ticket = await Ticket.findByPk(req.params.id,
+      { include: [{ model: Comment, required: false }] })
     const flaudRisk = await calculateFlaudRisk(ticket.id)
     const data = JSON.stringify({ ticket, flaudRisk })
     stream.updateInit(data)
@@ -37,7 +38,8 @@ app.get(
 )
 
 const updateStream = async () => {
-  const ticket = await Ticket.findByPk(streamId)
+  const ticket = await Ticket.findByPk(streamId,
+    { include: [{ model: Comment, required: false }] })
   const flaudRisk = await calculateFlaudRisk(ticket.id)
   const data = JSON.stringify({ ticket, flaudRisk })
   console.log('updateStream running')
