@@ -3,8 +3,9 @@ const { Router } = require('express')
 const moment = require('moment')
 const router = new Router()
 const { Op } = require('sequelize')
+const  auth  = require('./auth/middleware')
 
-router.post('/event', async (req, res) => {
+router.post('/event', auth, async (req, res) => {
   try {
     const { name, description, picture, startDate, endDate } = req.body
     console.log(startDate)
@@ -33,12 +34,16 @@ router.post('/event', async (req, res) => {
 })
 
 router.get('/events', async (req, res) => {
-  const events = await Event.findAll({
+  const { offset } = req.query
+  console.log(moment())
+  const events = await Event.findAndCountAll({
     where: {
       endDate: {
-        [Op.gte]: moment()
+        [Op.gte]: moment().local().startOf('day')
       }
-    }
+    },
+    limit: 9,
+    offset: offset || 0
   })
   res.json(events)
 })
@@ -54,7 +59,7 @@ router.get('/event/:id', async (req, res) => {
   }
 })
 
-router.put('/event/:id', async (req, res) => {
+router.put('/event/:id', auth, async (req, res) => {
   try {
     const event = await Event.findByPk(req.params.id)
     const { name, description, picture, startDate, endDate } = req.body
