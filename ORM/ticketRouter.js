@@ -35,7 +35,7 @@ function ticketRouterFac(updateStream) {
       } else {
         if (ticket) {
           await ticket.update({ price: parseInt(price), description, picture, eventId: parseInt(eventId) })
-          res.json({ ticket })
+          res.status(200).send({message:'event succsfully edited'})
           updateStream()
         } else {
           res.status(422).send({ message: 'Event or ticket is not found' })
