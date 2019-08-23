@@ -5,7 +5,7 @@ const userRouter = require('./ORM/userRouter')
 const eventRouter = require('./ORM/eventRouter')
 const { ticketRouterFac, calculateFlaudRisk } = require('./ORM/ticketRouter')
 const commentRouterFac = require('./ORM/commentRouter')
-const { Ticket } = require('./ORM/model')
+const { Ticket, Comment, User } = require('./ORM/model')
 const authRouter = require('./ORM/auth/router')
 
 const sse = require('json-sse')
@@ -28,8 +28,8 @@ app.get(
   '/stream/:id',
   async (request, response) => {
     streamId = request.params.id
-    const ticket = await Ticket.findByPk(req.params.id,
-      { include: [{ model: Comment, required: false }] })
+    const ticket = await Ticket.findByPk(request.params.id,
+      { include: [{ model: Comment, required: false, include:{model:User,attributes:['name']} }, { model: User }] })
     const flaudRisk = await calculateFlaudRisk(ticket.id)
     const data = JSON.stringify({ ticket, flaudRisk })
     stream.updateInit(data)
@@ -39,7 +39,7 @@ app.get(
 
 const updateStream = async () => {
   const ticket = await Ticket.findByPk(streamId,
-    { include: [{ model: Comment, required: false }] })
+    { include: [{ model: Comment, required: false, include:{model:User,attributes:['name']} }, { model: User }] })
   const flaudRisk = await calculateFlaudRisk(ticket.id)
   const data = JSON.stringify({ ticket, flaudRisk })
   console.log('updateStream running')

@@ -15,7 +15,7 @@ router.post('/login', (req, res) => {
     User
       .findOne({
         where: {
-           email
+          email
         }
       })
       .then(entity => {
@@ -24,7 +24,7 @@ router.post('/login', (req, res) => {
             message: 'User with that name does not exist'
           })
         }
-        if (bcrypt.compareSync(password, entity.password)) {
+        else if (bcrypt.compareSync(password, entity.password)) {
           res.json({
             jwt: toJWT({ id: entity.id }),
             id: entity.id,

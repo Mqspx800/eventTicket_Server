@@ -7,11 +7,13 @@ const auth = require('./auth/middleware')
 function ticketRouterFac(updateStream) {
   router.post('/ticket', auth, async (req, res) => {
     try {
+      console.log(req.body)
       const { price, description, userId, eventId, picture, stock } = req.body
-      const event = await Event.findByPk(eventId)
+      const event = await Event.findByPk(parseInt(eventId))
       if (!event) res.status(422).send({ message: 'Event not found!' })
       else if (price && description) {
-        const ticket = await Ticket.create({ price: parseInt(price), description, picture, userId, eventId, stock })
+        const newTicket = await Ticket.create({ price: parseInt(price), description, picture, userId, eventId, stock })
+        const ticket = await Ticket.findByPk(newTicket.id, { include: [{ model: User }, { model: Event }] })
         res.status(200).json({ ticket })
         updateStream()
       }
@@ -23,15 +25,16 @@ function ticketRouterFac(updateStream) {
 
   router.put('/ticket/:id', auth, async (req, res) => {
     try {
+      console.log(req.body)
       const { price, description, eventId, picture } = req.body
       const { user } = req
-      const ticket = await Ticket.findOne({ where: { id: req.params.id, eventId } })
+      const ticket = await Ticket.findOne({ where: { id: req.params.id, eventId: parseInt(eventId) } })
       console.log('user.id', user.id, 'userId', ticket.userId)
       if (user.id != ticket.userId) {
-        res.status(404).send({ message: 'you are not authrized to make changes on this ticket' }) // check owner
+        res.status(404).send({ message: 'you are not authorized to make changes on this ticket' }) // check owner
       } else {
         if (ticket) {
-          await ticket.update({ price: parseInt(price), description, picture, eventId })
+          await ticket.update({ price: parseInt(price), description, picture, eventId: parseInt(eventId) })
           res.json({ ticket })
           updateStream()
         } else {
@@ -44,31 +47,14 @@ function ticketRouterFac(updateStream) {
     }
   })
 
-  router.buy('/ticket/buy/:id', auth, async (req, res) => {
-    try {
-      const { number } = req.body
-      const ticket = await Ticket.findByPk(req.params.id)
-      if (ticket.stock < parseInt(number)) { res.json({ message: 'not enough stock' }) }
-      else if (ticket.stock === parseInt(number)) { ticket.destroy({ where: { id: ticket.id } }) }
-      else {
-        ticket.update({ stock: stock -= parseInt(number) })
-      }
-    } catch (err) {
-      console.error(err)
-      res.status(500).send()
-    }
-  })
-
   router.get('/tickets', async (req, res) => {
     try {
-      const { eventId } = req.body
-      const tickets = await Ticket.findAll({
-        where: eventId
-      })
+      const { eventId } = req.query
+      const tickets = await Ticket.findAll({ where: { eventId }, include: [{ model: User }, { model: Event }] })
       if (tickets) {
         res.json({ tickets })
       } else {
-        res.send({ message: 'no tickets for this event' })
+        res.status(404).send({ message: 'no tickets for this event' })
       }
     } catch (err) {
       console.error(err)

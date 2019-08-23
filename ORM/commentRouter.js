@@ -12,7 +12,7 @@ function commentRouterFactory(updateStream) {
     console.log(req.body)
     if (!text || text === '') res.status(422).send('not allow to post empty comment')
     if (userId) {
-      const comment = await Comment.create({ text, userId, ticketId })
+      const comment = await Comment.create({ text, userId: parseInt(userId),ticketId: parseInt(ticketId) })
       res.json({ comment })
       updateStream()
     } else {

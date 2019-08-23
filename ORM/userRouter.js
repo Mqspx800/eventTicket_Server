@@ -3,6 +3,7 @@ const { Router } = require('express')
 const router = new Router()
 const bcrypt = require('bcrypt')
 const Sequelize = require('sequelize')
+const {toJWT}=require('../ORM/auth/jwt')
 
 router.post('/user', async (req, res) => {
   try {
@@ -15,10 +16,14 @@ router.post('/user', async (req, res) => {
       )
     })
     if (userExist)
-      res.status(405).send('Either the name or email has been taken')
+      res.status(405).send({ message: 'Either the name or email has been taken' })
     else {
-      const newUser = await User.create({ name, email, password })
-      res.json({ newUser })
+      const user = await User.create({ name, email, password })
+      res.json({
+        jwt: toJWT({ id: user.id }),
+        id: user.id,
+        name: user.name
+      })
     }
   } catch (err) {
     console.error(err)
